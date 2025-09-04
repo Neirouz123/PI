@@ -1,0 +1,564 @@
+{% extends 'admin_base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stats-number">{{ totalVenues }}</div>
+                    <div class="stats-label">Total Venues</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stats-number">{{ totalReservations }}</div>
+                    <div class="stats-label">Total Reservations</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stats-number">{{ totalUsers }}</div>
+                    <div class="stats-label">Total Users</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stats-number">{{ pendingReservations }}</div>
+                    <div class="stats-label">Pending Reservations</div>
+                </div>
+                <div class="stats-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mb-4">
+    <!-- Monthly Reservations Chart -->
+    <div class="col-xl-8 mb-4">
+        <div class="admin-card">
+            <div class="card-header-custom">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Monthly Reservations ({{ "now"|date("Y") }})
+                </h5>
+            </div>
+            <div class="card-body-custom">
+                <div style="height: 300px; position: relative;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Venue Popularity Chart -->
+    <div class="col-xl-4 mb-4">
+        <div class="admin-card">
+            <div class="card-header-custom">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Venue Popularity
+                </h5>
+            </div>
+            <div class="card-body-custom">
+                <div id="venueChart" style="height: 300px; position: relative;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity and Quick Actions -->
+<div class="row">
+    <!-- Recent Reservations -->
+    <div class="col-xl-8 mb-4">
+        <div class="admin-card">
+            <div class="card-header-custom">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Reservations
+                </h5>
+            </div>
+            <div class="card-body-custom">
+                {% if recentReservations|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Venue</th>
+                                    <th>Customer</th>
+                                    <th>Date & Time</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in recentReservations %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ reservation.local.nom }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ reservation.local.adresse }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                {{ reservation.utilisateur.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ reservation.utilisateur.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ reservation.utilisateur.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ reservation.date|date('d/m/Y') }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ reservation.heureDebut|date('H:i') }} - {{ reservation.heureFin|date('H:i') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ reservation.prix }} DT</strong>
+                                    </td>
+                                    <td>
+                                        {% if reservation.statut == 'Confirmée' %}
+                                            <span class="badge-success-custom">Confirmed</span>
+                                        {% elseif reservation.statut == 'En attente' %}
+                                            <span class="badge-warning-custom">Pending</span>
+                                        {% else %}
+                                            <span class="badge-danger-custom">{{ reservation.statut }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No recent reservations found</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-xl-4 mb-4">
+        <div class="admin-card">
+            <div class="card-header-custom">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body-custom">
+                <div class="d-grid gap-3">
+                    <a href="{{ path('app_admin_venues') }}" class="btn btn-primary-custom">
+                        <i class="fas fa-building me-2"></i>
+                        Manage Venues
+                    </a>
+                    
+                    <a href="{{ path('app_admin_reservations') }}" class="btn btn-primary-custom">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        View Reservations
+                    </a>
+                    
+                    <a href="{{ path('app_admin_users') }}" class="btn btn-primary-custom">
+                        <i class="fas fa-users me-2"></i>
+                        Manage Users
+                    </a>
+                    
+                    <a href="{{ path('app_local_new') }}" class="btn btn-primary-custom">
+                        <i class="fas fa-plus me-2"></i>
+                        Add New Venue
+                    </a>
+                    
+                    <a href="{{ path('app_utilisateur_new') }}" class="btn btn-primary-custom">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Add New User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+</style>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Monthly Reservations Chart
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyData = {{ monthlyData|json_encode|raw }};
+
+// Create month labels
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthlyCounts = new Array(12).fill(0);
+
+// Fill in the data with validation
+if (Array.isArray(monthlyData)) {
+    monthlyData.forEach(item => {
+        if (item && typeof item.month === 'number' && item.month >= 1 && item.month <= 12) {
+            const count = parseInt(item.count) || 0;
+            monthlyCounts[item.month - 1] = isFinite(count) ? count : 0;
+        }
+    });
+}
+                        <p>Total Venues</p>
+                    </div>
+                    <div class="stats-icon">🏰</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3>{{ totalReservations }}</h3>
+                        <p>Total Reservations</p>
+                    </div>
+                    <div class="stats-icon">📅</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3>{{ totalUsers }}</h3>
+                        <p>Total Users</p>
+                    </div>
+                    <div class="stats-icon">👥</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3>{{ pendingReservations }}</h3>
+                        <p>Pending Reservations</p>
+                    </div>
+                    <div class="stats-icon">⏳</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Data Row -->
+    <div class="row">
+        <!-- Monthly Reservations Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Monthly Reservations ({{ "now"|date("Y") }})
+                </h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Venue Statistics -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Venue Popularity
+                </h5>
+                <div id="venueChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity and Quick Actions -->
+    <div class="row">
+        <!-- Recent Reservations -->
+        <div class="col-xl-8">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-clock me-2"></i>
+                    Recent Reservations
+                </h5>
+                {% if recentReservations|length > 0 %}
+                    {% for reservation in recentReservations %}
+                        <div class="recent-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ reservation.local.nom }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ reservation.utilisateur.username }} - 
+                                        {{ reservation.date|date('d/m/Y') }} 
+                                        ({{ reservation.heureDebut|date('H:i') }} - {{ reservation.heureFin|date('H:i') }})
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge {% if reservation.statut == 'Confirmée' %}bg-success{% elseif reservation.statut == 'En attente' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ reservation.statut }}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">{{ reservation.prix }} DT</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-3">No recent reservations</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-xl-4">
+            <div class="quick-actions">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+                
+                <a href="{{ path('app_admin_venues') }}" class="quick-action-btn w-100 text-center">
+                    <i class="fas fa-building me-2"></i>
+                    Manage Venues
+                </a>
+                
+                <a href="{{ path('app_admin_reservations') }}" class="quick-action-btn w-100 text-center">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    View Reservations
+                </a>
+                
+                <a href="{{ path('app_admin_users') }}" class="quick-action-btn w-100 text-center">
+                    <i class="fas fa-users me-2"></i>
+                    Manage Users
+                </a>
+                
+                <a href="{{ path('app_local_new') }}" class="quick-action-btn w-100 text-center">
+                    <i class="fas fa-plus me-2"></i>
+                    Add New Venue
+                </a>
+                
+                <a href="{{ path('app_utilisateur_new') }}" class="quick-action-btn w-100 text-center">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Add New User
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Monthly Reservations Chart
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyData = {{ monthlyData|json_encode|raw }};
+
+// Create month labels
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const monthlyCounts = new Array(12).fill(0);
+
+// Fill in the data with validation
+if (Array.isArray(monthlyData)) {
+    monthlyData.forEach(item => {
+        if (item && typeof item.month === 'number' && item.month >= 1 && item.month <= 12) {
+            const count = parseInt(item.count) || 0;
+            monthlyCounts[item.month - 1] = isFinite(count) ? count : 0;
+        }
+    });
+}
+
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [{
+            label: 'Reservations',
+            data: monthlyCounts,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#667eea',
+            pointBorderColor: '#667eea',
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: 'white',
+                bodyColor: 'white'
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                suggestedMax: Math.max(...monthlyCounts) + 2,
+                ticks: {
+                    stepSize: 1,
+                    precision: 0,
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : '';
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            }
+        }
+    }
+});
+
+// Venue Popularity Chart (Simple bar chart)
+const venueData = {{ venueStats|json_encode|raw }};
+
+// Validate and process venue data
+let venueNames = [];
+let venueCounts = [];
+
+if (Array.isArray(venueData) && venueData.length > 0) {
+    venueNames = venueData.map(item => item.venueName || item.nom || 'Unknown Venue').slice(0, 10);
+    venueCounts = venueData.map(item => {
+        const count = parseInt(item.reservationCount) || 0;
+        return isFinite(count) ? count : 0;
+    }).slice(0, 10);
+} else {
+    venueNames = ['No data available'];
+    venueCounts = [0];
+}
+
+// Create a simple bar chart using Chart.js
+const venueCtx = document.createElement('canvas');
+document.getElementById('venueChart').appendChild(venueCtx);
+
+new Chart(venueCtx, {
+    type: 'bar',
+    data: {
+        labels: venueNames,
+        datasets: [{
+            label: 'Reservations',
+            data: venueCounts,
+            backgroundColor: [
+                '#667eea',
+                '#764ba2',
+                '#f093fb',
+                '#4facfe',
+                '#00f2fe',
+                '#43e97b',
+                '#38f9d7',
+                '#ffecd2',
+                '#fcb69f',
+                '#a8edea'
+            ],
+            borderRadius: 6,
+            borderSkipped: false
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: 'white',
+                bodyColor: 'white'
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+            y: {
+                beginAtZero: true,
+                suggestedMax: Math.max(...venueCounts) + 1,
+                ticks: {
+                    stepSize: 1,
+                    precision: 0,
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : '';
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

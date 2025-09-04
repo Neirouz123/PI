@@ -1,0 +1,72 @@
+{% extends 'admin_base.html.twig' %}
+
+{% block title %}Add New User{% endblock %}
+{% block page_title %}Add New User{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="mb-1">Create New User</h5>
+        <p class="text-muted mb-0">Add a new user to the system</p>
+    </div>
+    <a href="{{ path('app_admin_users') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Back to Users
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="admin-card">
+    <div class="card-body-custom">
+        {{ form_start(form, {'attr': {'class': 'admin-form', 'novalidate': 'novalidate'}}) }}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(form.username) }}
+                    {{ form_widget(form.username) }}
+                    {{ form_errors(form.username) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(form.email) }}
+                    {{ form_widget(form.email) }}
+                    {{ form_errors(form.email) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(form.password_hash) }}
+                    {{ form_widget(form.password_hash) }}
+                    {{ form_errors(form.password_hash) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form_label(form.role) }}
+                    {{ form_widget(form.role) }}
+                    {{ form_errors(form.role) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary-custom">
+                <i class="fas fa-user-plus me-2"></i>
+                Create User
+            </button>
+            <a href="{{ path('app_admin_users') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-times me-2"></i>
+                Cancel
+            </a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

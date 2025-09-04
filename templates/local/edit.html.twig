@@ -1,0 +1,87 @@
+{% extends 'admin_base.html.twig' %}
+
+{% block title %}Edit Venue{% endblock %}
+{% block page_title %}Edit Venue{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="mb-1">Edit Venue</h5>
+        <p class="text-muted mb-0">Update venue information</p>
+    </div>
+    <a href="{{ path('app_admin_venues') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>
+        Back to Venues
+    </a>
+</div>
+
+<!-- Form Card -->
+<div class="admin-card">
+    <div class="card-body-custom">
+        {{ form_start(form, {'attr': {'class': 'admin-form', 'novalidate': 'novalidate'}}) }}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form_label(form.nom, null, {'attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.nom) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form_label(form.capacite, null, {'attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.capacite, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.capacite) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    {{ form_label(form.prix, null, {'attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.prix, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.prix) }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label class="form-label">Availability</label>
+                    <div class="form-check form-switch">
+                        {{ form_widget(form.disponible, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_label(form.disponible, 'Available for booking', {'attr': {'class': 'form-check-label'}}) }}
+                    </div>
+                    {{ form_errors(form.disponible) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group mb-3">
+            {{ form_label(form.adresse, null, {'attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.adresse, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.adresse) }}
+        </div>
+
+        <div class="form-group mb-4">
+            {{ form_label(form.description, null, {'attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ path('app_admin_venues') }}" class="btn btn-outline-secondary me-md-2">
+                <i class="fas fa-times me-2"></i>
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary-custom">
+                <i class="fas fa-save me-2"></i>
+                Update Venue
+            </button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}
